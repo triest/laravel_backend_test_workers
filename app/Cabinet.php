@@ -11,6 +11,6 @@ class Cabinet extends Model
 
     public function worker()
     {
-        return $this->belongsToMany(Worker::class,'worker_cabinet','cabinetld','workerld');
+        return $this->belongsToMany(Worker::class,'worker_cabinet','cabinetId','workerId');
     }
 }

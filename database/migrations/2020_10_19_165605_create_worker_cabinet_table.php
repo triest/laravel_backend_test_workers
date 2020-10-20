@@ -15,8 +15,8 @@ class CreateWorkerCabinetTable extends Migration
     {
         Schema::create('worker_cabinet', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('workerld')->nullable()->constrained('worker');
-            $table->foreignId('cabinetld')->nullable()->constrained('cabinet');
+            $table->foreignId('workerId')->nullable()->constrained('worker');
+            $table->foreignId('cabinetId')->nullable()->constrained('cabinet');
             $table->timestamps();
         });
     }

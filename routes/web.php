@@ -20,4 +20,8 @@ Route::get('/', function () {
 
 Route::get('/create',[TestController::class,'create']);
 
+Route::get('/worker_cabinet',[TestController::class,'workerCabinet']);
+
+Route::get('/worker_flor/{id}',[TestController::class,'workerFlor']);
+
 

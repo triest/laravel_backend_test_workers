@@ -4,6 +4,7 @@
 
     use Illuminate\Database\Eloquent\Model;
     use Illuminate\Database\Migrations\Migration;
+    use Illuminate\Database\Eloquent\Builder;
     use Illuminate\Database\Schema\Blueprint;
     use Illuminate\Support\Facades\Schema;
     use Illuminate\Support\Facades\Storage;
@@ -71,17 +72,6 @@
 
         private function _fill()
         {
-            //fill worker
-            //   $workerSeeder=new \WorkerSeeder();
-            //    $workerSeeder->run();
-
-            //заполнение worker_cabinet
-            //  $cabinet_seeder=new \CabinetSeeder();
-            /*
-             *
-             * */
-
-            //     $cabinet_seeder->run();
             //заполняем кабинет
             $workers = Worker::select(['*'])->get();
 
@@ -103,7 +93,7 @@
             $workers = Worker::select(['*'])->get();
             //создание каталога
             foreach ($workers as $worker) {
-                 Storage::makeDirectory('docs/'.$worker->id);
+                Storage::makeDirectory('docs/' . $worker->id);
             }
         }
 
@@ -118,4 +108,28 @@
         {
             $this->_create();
         }
+
+        //Оптимизировать запрос и создать метод, выполняющий выборку: SELECT * FROM worker, cabinet, worker_cabinet WHERE worker_cabinet.workerId = worker.id AND worker_cabinet.cabinetId = cabinet.id;
+        public function selectWorkerCabinet()
+        {
+            $workers = Worker::select(['*'])->with(['cabinet'])->get();
+            dump($workers);
+            dump($workers->cabinet);
+        }
+
+        //2. Создать метод выбирающий всех сотрудников на определенном этаже;
+        private function selectWorkersOnFlor(int $flor)
+        {
+            $workers=Worker::whereHas('cabinet',function ($query) use ($flor) {
+                $query->where('flor','=',$flor);
+            })->get();
+
+            return $workers;
+        }
+
+        public function testWorkerFlor(int $flor)
+        {
+           return $this->selectWorkersOnFlor($flor);
+        }
+
     }
