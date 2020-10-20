@@ -2,6 +2,8 @@
 
     namespace App;
 
+    use DOMDocument;
+    use DOMXPath;
     use Illuminate\Database\Eloquent\Model;
     use Illuminate\Database\Migrations\Migration;
     use Illuminate\Database\Eloquent\Builder;
@@ -94,6 +96,7 @@
             //создание каталога
             foreach ($workers as $worker) {
                 Storage::makeDirectory('docs/' . $worker->id);
+                //      mkdir(base_path() . '/docs/' . $worker->id);
             }
         }
 
@@ -120,16 +123,141 @@
         //2. Создать метод выбирающий всех сотрудников на определенном этаже;
         private function selectWorkersOnFlor(int $flor)
         {
-            $workers=Worker::whereHas('cabinet',function ($query) use ($flor) {
-                $query->where('flor','=',$flor);
-            })->get();
+            $workers = Worker::whereHas(
+                    'cabinet',
+                    function ($query) use ($flor) {
+                        $query->where('flor', '=', $flor);
+                    }
+            )->get();
 
             return $workers;
         }
 
+        //3. Создать метод, выбирающий сотрудников с наибольшей зар. платой на этаже/в кабинете;
+        public function selectWorkerWithMaxSalary($flor, $type = "flor")
+        {
+            if ($type == "flor") {
+                $workers = Worker::whereHas(
+                        'cabinet',
+                        function ($query) use ($flor) {
+                            $query->where('flor', '=', $flor);
+                        }
+                )->orderBy('salary', 'desc')->first();;
+            } elseif ($type == "cabinet") {
+                $workers = Worker::whereHas(
+                        'cabinet',
+                        function ($query) use ($flor) {
+                            $query->where('num', '=', $flor);
+                        }
+                )->orderBy('salary', 'desc')->first()->first();
+            } else {
+                $workers = null;
+            }
+            return $workers;
+        }
+
+        //4. Создать метод, выбирающий всех сотрудников из кабинета с наибольшей/наименьшей вместимостью;
+        public function selectWorkersFromCabinetOrderByCapacity($order = "max")
+        {
+            if ($order == "max") {
+                $cabinet = Cabinet::select(['*'])->orderby('capacity', 'desc')->first();
+            } elseif ($order == "min") {
+                $cabinet = Cabinet::select(['*'])->orderby('capacity', 'asc')->first();
+            }
+            if ($cabinet == null) {
+                return null;
+            }
+
+            //теперь сотрудников из кабинета из кабинета
+            $workers = Worker::whereHas(
+                    'cabinet',
+                    function ($query) use ($cabinet) {
+                        $query->where('cabinet.id', '=', $cabinet->id);
+                    }
+            )->get();
+
+            return $workers;
+        }
+
+        //5.Создать метод, который в каталоге /docs/<worker.id> находит все файлы, имена которых состоят из цифр и букв
+        // латинского алфавита, имеют расширение txt и выводит на экран имена этих файлов, упорядоченных по имени.
+        // Каталог выбирать по полю name из таблицы worker. Задачу выполнить с применением регулярных выражений;
+        public function searchFiles($workerid)
+        {
+            $files = Storage::files('/public/docs/' . $workerid . "/");
+            $rez = [];
+            foreach ($files as $file) {
+                $rex = "/^[a-zA-Z0-9].*\.(txt)$/i";
+                // $rex="/^([a-zA-Z0-9\s_\\.\-\(\):])+\.(txt)$/i";
+                if ($rex != "" && preg_match($rex, $file)) {
+                    array_push($rez, basename($file));
+                }
+            }
+
+            return asort($rez);
+        }
+
+
+        public function getVkphoto($user_id)
+        {
+            //page_avatar_img
+            $user = Worker::select(['*'])->where('id', $user_id)->first();
+            if ($user == null) {
+                return;
+            }
+            $url = "https://vk.com/" . $user->vkld;
+            //$linkimg = $this->getTags("https://vk.com/mcsidar");
+
+            $htmlString = file_get_contents($url);
+
+//Create a new DOMDocument object.
+            $htmlDom = new DOMDocument;
+
+//Load the HTML string into our DOMDocument object.
+            @$htmlDom->loadHTML($htmlString);
+
+            $finder = new DomXPath(@$htmlDom);
+            $classname = "page_avatar_img";
+
+
+            //надо по класса page_avatar_img
+            $imageTags = $htmlDom->getElementsByTagName('img');
+
+//Create an array to add extracted images to.
+            $extractedImages = array();
+
+//Loop through the image tags that DOMDocument found.
+            foreach ($imageTags as $imageTag) {
+                //Get the src attribute of the image.
+                $imgSrc = $imageTag->getAttribute('src');
+
+                //Get the alt text of the image.
+                $altText = $imageTag->getAttribute('alt');
+
+                //Get the title text of the image, if it exists.
+                $titleText = $imageTag->getAttribute('title');
+
+                //Add the image details to our $extractedImages array.
+                $extractedImages[] = array(
+                        'src' => $imgSrc,
+                        'alt' => $altText,
+                        'title' => $titleText
+                );
+            }
+            try {
+                $src = ($extractedImages[0]['src']);
+            } catch (\Exception $exception) {
+                return 1;
+            }
+            $user->photo = $src;
+            $user->save();
+            return $user;
+        }
+
+
         public function testWorkerFlor(int $flor)
         {
-           return $this->selectWorkersOnFlor($flor);
+            return $this->selectWorkersOnFlor($flor);
         }
 
     }

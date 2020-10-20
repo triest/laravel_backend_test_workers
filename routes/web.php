@@ -24,4 +24,11 @@ Route::get('/worker_cabinet',[TestController::class,'workerCabinet']);
 
 Route::get('/worker_flor/{id}',[TestController::class,'workerFlor']);
 
+Route::get('/max_salary/{id}',[TestController::class,'maxSalary']);
+
+Route::get('/capacity/{type}',[TestController::class,'capacity']);
+
+Route::get('/search-files/{workerid}',[TestController::class,'searchFiles']);
+
+Route::get('/vk-photo/{id}',[TestController::class,'vkPhoto']);
 
