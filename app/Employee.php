@@ -112,12 +112,35 @@
             $this->_create();
         }
 
+        public function __get($type,$data=""){
+
+            switch ($type) {
+                case "cabinet":
+                    $return=$this->selectWorkerCabinet();
+                    break;
+                case "flor":
+                    $return=$this->selectWorkersOnFlor($data);
+                    break;
+                case "max_salary":
+                    $return=$this->selectWorkerWithMaxSalary($data);
+                    break;
+                case "cabinet_order_capacity":
+                    $return=$this->selectWorkersFromCabinetOrderByCapacity();
+                    break;
+                case "searchFiles":
+                    $return=$this->searchFiles($data);
+                    break;
+                case "vk_photo":
+                    $return=$this->getVkphoto($data);
+            }
+            return $return;
+        }
+
         //Оптимизировать запрос и создать метод, выполняющий выборку: SELECT * FROM worker, cabinet, worker_cabinet WHERE worker_cabinet.workerId = worker.id AND worker_cabinet.cabinetId = cabinet.id;
         public function selectWorkerCabinet()
         {
             $workers = Worker::select(['*'])->with(['cabinet'])->get();
-            dump($workers);
-            dump($workers->cabinet);
+            return $workers;
         }
 
         //2. Создать метод выбирающий всех сотрудников на определенном этаже;
@@ -188,7 +211,6 @@
             $rez = [];
             foreach ($files as $file) {
                 $rex = "/^[a-zA-Z0-9].*\.(txt)$/i";
-                // $rex="/^([a-zA-Z0-9\s_\\.\-\(\):])+\.(txt)$/i";
                 if ($rex != "" && preg_match($rex, $file)) {
                     array_push($rez, basename($file));
                 }
@@ -198,7 +220,7 @@
         }
 
 
-        public function getVkphoto($user_id)
+        public function getVkphoto(int $user_id)
         {
             //page_avatar_img
             $user = Worker::select(['*'])->where('id', $user_id)->first();
@@ -206,7 +228,6 @@
                 return;
             }
             $url = "https://vk.com/" . $user->vkld;
-            //$linkimg = $this->getTags("https://vk.com/mcsidar");
 
             $htmlString = file_get_contents($url);
 
