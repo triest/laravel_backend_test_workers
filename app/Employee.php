@@ -192,7 +192,7 @@
             } elseif ($order == "min") {
                 $cabinet = Cabinet::select(['*'])->orderby('capacity', 'asc')->first();
             }
-            if ($cabinet == null) {
+            if (!isset($cabinet) || $cabinet == null) {
                 return null;
             }
 

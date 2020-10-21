@@ -24,7 +24,7 @@
         public function workerFlor($flor)
         {
             $employee = new Employee();
-            $worker = $employee->testWorkerFlor($flor);
+            $worker = $employee->selectWorkersOnFlor($flor);
             dump($worker);
         }
 
