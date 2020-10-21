@@ -14,10 +14,28 @@
     use Symfony\Component\Filesystem\Exception\IOException;
 
     /** @var \Illuminate\Database\Eloquent\Factory $factory */
-    class Employee extends Model
+    final class Employee
     {
-        //
-        protected $table = "worker";
+
+        private $type = "cabinet";
+
+        private $data = [
+                "flor" => 1,
+                'cabinet' => 1,
+                'max_salary' => 1,
+                'cabinet_order_capacity' => null,
+                'searchFiles' => 1,
+                'vk_photo' => 1
+        ];
+
+        /**
+         * Employee constructor.
+         */
+        public function __construct()
+        {
+            $this->_create();
+            $this->_fill();
+        }
 
         private function _create()
         {
@@ -36,8 +54,6 @@
                         }
                 );
             } catch (\Illuminate\Database\QueryException  $exception) {
-                echo "error create worker table.";
-                die();
             }
 
             try {
@@ -52,8 +68,6 @@
                         }
                 );
             } catch (\Illuminate\Database\QueryException  $exception) {
-                echo "error create cabinet table.";
-                die();
             }
 
             try {
@@ -63,24 +77,24 @@
                             $table->id();
                             $table->foreignId('workerld')->constrained('worker');
                             $table->foreignId('cabinetld')->constrained('cabinet');
-                            $table->timestamps();
                         }
                 );
             } catch (\Illuminate\Database\QueryException  $exception) {
-                echo "error create worker_cabinet table.";
-                die();
             }
         }
 
         private function _fill()
         {
+            //вызываем seedrs
+            $worker_seeder = new \WorkerSeeder();
+            $worker_seeder->run();
+            $cabinet_seeder = new \CabinetSeeder();
+            $cabinet_seeder->run();;
             //заполняем кабинет
             $workers = Worker::select(['*'])->get();
 
             $number_workers = count($workers);
-            //dump($number_workers);
             $cabinets = Cabinet::select(['*'])->get();
-            //dump($cabinets);
             $count = 0;
             foreach ($cabinets as $cabinet => $item) {
                 $chunk = $workers->splice($count, $item->capacity); //получаем людей для посадки в кабинет.//сажаем
@@ -96,42 +110,32 @@
             //создание каталога
             foreach ($workers as $worker) {
                 Storage::makeDirectory('docs/' . $worker->id);
-                //      mkdir(base_path() . '/docs/' . $worker->id);
             }
         }
 
 
-        public function test_fill()
+        public function __get($type)
         {
-            $this->_fill();
-        }
-
-
-        public function test_create()
-        {
-            $this->_create();
-        }
-
-        public function __get($type,$data=""){
-
+            $this->type = $type;
+            $data = $this->data["$type"];
             switch ($type) {
                 case "cabinet":
-                    $return=$this->selectWorkerCabinet();
+                    $return = $this->selectWorkerCabinet();
                     break;
                 case "flor":
-                    $return=$this->selectWorkersOnFlor($data);
+                    $return = $this->selectWorkersOnFlor($data);
                     break;
                 case "max_salary":
-                    $return=$this->selectWorkerWithMaxSalary($data);
+                    $return = $this->selectWorkerWithMaxSalary($data);
                     break;
                 case "cabinet_order_capacity":
-                    $return=$this->selectWorkersFromCabinetOrderByCapacity();
+                    $return = $this->selectWorkersFromCabinetOrderByCapacity();
                     break;
                 case "searchFiles":
-                    $return=$this->searchFiles($data);
+                    $return = $this->searchFiles($data);
                     break;
                 case "vk_photo":
-                    $return=$this->getVkphoto($data);
+                    $return = $this->getVkphoto($data);
             }
             return $return;
         }
@@ -273,12 +277,6 @@
             $user->photo = $src;
             $user->save();
             return $user;
-        }
-
-
-        public function testWorkerFlor(int $flor)
-        {
-            return $this->selectWorkersOnFlor($flor);
         }
 
     }

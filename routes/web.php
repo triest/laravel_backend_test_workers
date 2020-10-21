@@ -32,3 +32,4 @@ Route::get('/search-files/{workerid}',[TestController::class,'searchFiles']);
 
 Route::get('/vk-photo/{id}',[TestController::class,'vkPhoto']);
 
+Route::get('/test',[TestController::class,'testget']);
