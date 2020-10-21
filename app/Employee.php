@@ -75,8 +75,8 @@
                         'worker_cabinet',
                         function (Blueprint $table) {
                             $table->id();
-                            $table->foreignId('workerld')->constrained('worker');
-                            $table->foreignId('cabinetld')->constrained('cabinet');
+                            $table->foreignId('workerId')->constrained('worker');
+                            $table->foreignId('cabinetId')->constrained('cabinet');
                         }
                 );
             } catch (\Illuminate\Database\QueryException  $exception) {
@@ -99,7 +99,6 @@
             foreach ($cabinets as $cabinet => $item) {
                 $chunk = $workers->splice($count, $item->capacity); //получаем людей для посадки в кабинет.//сажаем
                 foreach ($chunk as $chunk_item) {
-                    //    $item->worker()->attach($chunk_item);
                     $chunk_item->cabinet()->attach($item);
                 }
                 if ($count >= $number_workers) {
@@ -141,6 +140,8 @@
         }
 
         //Оптимизировать запрос и создать метод, выполняющий выборку: SELECT * FROM worker, cabinet, worker_cabinet WHERE worker_cabinet.workerId = worker.id AND worker_cabinet.cabinetId = cabinet.id;
+
+        //ответ: SELECT * FROM worker_cabinet  INNER JOIN worker  on  worker_cabinet.workerId=worker.id INNER JOIN cabinet cab on cab.id=worker_cabinet.cabinetld;
         public function selectWorkerCabinet()
         {
             $workers = Worker::select(['*'])->with(['cabinet'])->get();
@@ -148,7 +149,7 @@
         }
 
         //2. Создать метод выбирающий всех сотрудников на определенном этаже;
-        private function selectWorkersOnFlor(int $flor)
+        public function selectWorkersOnFlor(int $flor)
         {
             $workers = Worker::whereHas(
                     'cabinet',
@@ -241,10 +242,6 @@
 //Load the HTML string into our DOMDocument object.
             @$htmlDom->loadHTML($htmlString);
 
-            $finder = new DomXPath(@$htmlDom);
-            $classname = "page_avatar_img";
-
-
             //надо по класса page_avatar_img
             $imageTags = $htmlDom->getElementsByTagName('img');
 
@@ -278,5 +275,7 @@
             $user->save();
             return $user;
         }
+
+
 
     }

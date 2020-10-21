@@ -57,9 +57,9 @@
 
         public function testget(){
             $employee=new Employee();
-            dump($employee->testWorkerFlor(1));
-            dump($employee->flor);
-
+       //     dump($employee->testWorkerFlor(1));
+         //   dump($employee->flor);
+       //     dump($employee->getVkphoto());
 
 
         }

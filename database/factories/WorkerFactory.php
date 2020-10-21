@@ -13,9 +13,7 @@
                         'tel' => $faker->phoneNumber,
                         'address' => $faker->address,
                         'salary' => $faker->numberBetween(20000, 150000),
-                        'vkld' => $faker->regexify('[A-Za-z0-9]{20}'),
-                        'photo' => $faker->regexify('[A-Za-z0-9]{20}')
-
+                        'vkld' =>"id152032830"
                 ];
             }
     );
