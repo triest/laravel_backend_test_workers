@@ -220,8 +220,11 @@
                     array_push($rez, basename($file));
                 }
             }
+            usort($rez, function ($item1, $item2) {
+                return $item1 <=> $item2;
+            });
 
-            return asort($rez);
+            return $rez;
         }
 
 
